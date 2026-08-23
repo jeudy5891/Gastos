@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useAccounts } from '../hooks/useAccounts'
 import { useCreditPayments } from '../hooks/useCreditPayments'
@@ -13,9 +14,11 @@ export default function Creditos() {
   const { accounts, loading: loadingAccounts, refresh: refreshAccounts } = useAccounts()
   const { payments, loading: loadingPayments, refresh: refreshPayments } = useCreditPayments()
   const creditAccounts = accounts.filter((account) => account.type === 'credito')
+  const debitAccounts = accounts.filter((account) => account.type === 'debito')
 
   const [editingId, setEditingId] = useState(null)
   const [accountId, setAccountId] = useState(null)
+  const [debitAccountId, setDebitAccountId] = useState(null)
   const [paymentDate, setPaymentDate] = useState(todayISODate())
   const [amount, setAmount] = useState('')
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -29,6 +32,7 @@ export default function Creditos() {
   function resetForm() {
     setEditingId(null)
     setAccountId(null)
+    setDebitAccountId(null)
     setPaymentDate(todayISODate())
     setAmount('')
   }
@@ -36,6 +40,7 @@ export default function Creditos() {
   function startEdit(payment) {
     setEditingId(payment.id)
     setAccountId(payment.account_id)
+    setDebitAccountId(payment.debit_account_id)
     setPaymentDate(payment.payment_date)
     setAmount(String(payment.amount))
     setError('')
@@ -56,6 +61,10 @@ export default function Creditos() {
       setError('Elegí la tarjeta a pagar')
       return
     }
+    if (!debitAccountId) {
+      setError('Elegí la cuenta a debitar')
+      return
+    }
     if (!paymentDate) {
       setError('Elegí la fecha de pago')
       return
@@ -68,6 +77,7 @@ export default function Creditos() {
     setSaving(true)
     const payload = {
       account_id: accountId,
+      debit_account_id: debitAccountId,
       payment_date: paymentDate,
       amount: amountNumber,
     }
@@ -141,77 +151,107 @@ export default function Creditos() {
             {editingId ? 'Editar pago' : 'Registrar pago'}
           </h2>
 
-          <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-4 space-y-4">
-            <div className="space-y-1">
-              <span className="text-sm text-gray-600">Tarjeta</span>
-              <div className="grid grid-cols-2 gap-2">
-                {creditAccounts.map((account) => (
-                  <button
-                    key={account.id}
-                    type="button"
-                    onClick={() => setAccountId(account.id)}
-                    className={`rounded-lg py-3 px-2 font-medium border text-sm ${
-                      String(accountId) === String(account.id)
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'bg-white text-gray-700 border-gray-300'
-                    }`}
-                  >
-                    {account.name}
-                  </button>
-                ))}
+          {debitAccounts.length === 0 ? (
+            <p className="text-gray-500">
+              Necesitás una cuenta de débito para pagar la tarjeta. Agregá una en{' '}
+              <Link to="/cuentas" className="text-blue-600 underline">
+                Cuentas
+              </Link>
+              .
+            </p>
+          ) : (
+            <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-4 space-y-4">
+              <div className="space-y-1">
+                <span className="text-sm text-gray-600">Tarjeta</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {creditAccounts.map((account) => (
+                    <button
+                      key={account.id}
+                      type="button"
+                      onClick={() => setAccountId(account.id)}
+                      className={`rounded-lg py-3 px-2 font-medium border text-sm ${
+                        String(accountId) === String(account.id)
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 border-gray-300'
+                      }`}
+                    >
+                      {account.name}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-1">
-              <span className="text-sm text-gray-600">Fecha de pago</span>
-              <button
-                type="button"
-                onClick={() => setShowDatePicker(true)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base text-left bg-white capitalize"
-              >
-                {formatDate(paymentDate)}
-              </button>
-            </div>
+              <div className="space-y-1">
+                <span className="text-sm text-gray-600">Cuenta a debitar</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {debitAccounts.map((account) => (
+                    <button
+                      key={account.id}
+                      type="button"
+                      onClick={() => setDebitAccountId(account.id)}
+                      className={`rounded-lg py-3 px-2 font-medium border text-sm ${
+                        String(debitAccountId) === String(account.id)
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-gray-700 border-gray-300'
+                      }`}
+                    >
+                      {account.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            <div className="space-y-1">
-              <label className="text-sm text-gray-600" htmlFor="payment-amount">
-                Monto pagado (₡)
-              </label>
-              <input
-                id="payment-amount"
-                type="number"
-                inputMode="decimal"
-                min="0"
-                step="1"
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-                placeholder="0"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base"
-              />
-            </div>
-
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            {success && <p className="text-sm text-green-600">Pago guardado ✔</p>}
-
-            <div className="flex gap-2">
-              {editingId && (
+              <div className="space-y-1">
+                <span className="text-sm text-gray-600">Fecha de pago</span>
                 <button
                   type="button"
-                  onClick={resetForm}
-                  className="flex-1 rounded-lg border border-gray-300 py-3 font-medium text-gray-700"
+                  onClick={() => setShowDatePicker(true)}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base text-left bg-white capitalize"
                 >
-                  Cancelar
+                  {formatDate(paymentDate)}
                 </button>
-              )}
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex-1 rounded-lg bg-blue-600 text-white py-3 font-medium disabled:opacity-50"
-              >
-                {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Guardar pago'}
-              </button>
-            </div>
-          </form>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-sm text-gray-600" htmlFor="payment-amount">
+                  Monto pagado (₡)
+                </label>
+                <input
+                  id="payment-amount"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="1"
+                  value={amount}
+                  onChange={(event) => setAmount(event.target.value)}
+                  placeholder="0"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base"
+                />
+              </div>
+
+              {error && <p className="text-sm text-red-600">{error}</p>}
+              {success && <p className="text-sm text-green-600">Pago guardado ✔</p>}
+
+              <div className="flex gap-2">
+                {editingId && (
+                  <button
+                    type="button"
+                    onClick={resetForm}
+                    className="flex-1 rounded-lg border border-gray-300 py-3 font-medium text-gray-700"
+                  >
+                    Cancelar
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 rounded-lg bg-blue-600 text-white py-3 font-medium disabled:opacity-50"
+                >
+                  {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Guardar pago'}
+                </button>
+              </div>
+            </form>
+          )}
 
           <div>
             <h2 className="text-base font-semibold text-gray-800 mb-2">Pagos recientes</h2>
@@ -226,6 +266,10 @@ export default function Creditos() {
                     <div>
                       <p className="font-medium text-gray-800">{payment.accounts?.name}</p>
                       <p className="text-sm text-gray-500">
+                        {payment.debit_account?.name
+                          ? `Desde ${payment.debit_account.name}`
+                          : 'Cuenta de origen no registrada'}
+                        {' · '}
                         {payment.profiles?.nombre || payment.profiles?.email}
                       </p>
                       <p className="text-xs text-gray-400 capitalize">{formatDate(payment.payment_date)}</p>

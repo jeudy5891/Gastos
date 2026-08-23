@@ -11,7 +11,9 @@ export function useCreditPayments() {
     setError('')
     const { data, error: fetchError } = await supabase
       .from('credit_payments')
-      .select('id, payment_date, amount, user_id, account_id, accounts(name), profiles(nombre, email)')
+      .select(
+        'id, payment_date, amount, user_id, account_id, debit_account_id, accounts!account_id(name), debit_account:accounts!debit_account_id(name), profiles(nombre, email)',
+      )
       .order('payment_date', { ascending: false })
 
     if (fetchError) {

@@ -29,7 +29,14 @@ export default function Login() {
   return (
     <div className="min-h-svh flex items-center justify-center bg-gray-50 px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white rounded-2xl shadow-sm p-6 space-y-4">
-        <h1 className="text-xl font-semibold text-gray-800 text-center">Gastos Familiares</h1>
+        <div className="flex flex-col items-center gap-3">
+          <img
+            src={`${import.meta.env.BASE_URL}logo.png`}
+            alt="Gastos Familiares"
+            className="w-24 h-24 rounded-2xl"
+          />
+          <h1 className="text-xl font-semibold text-gray-800 text-center">Gastos Familiares</h1>
+        </div>
 
         <div className="space-y-1">
           <label className="text-sm text-gray-600" htmlFor="email">Correo</label>
