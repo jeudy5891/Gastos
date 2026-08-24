@@ -27,6 +27,7 @@ export default function PayDatesCalendar({ onClose }) {
 
   const periodByDate = new Map(periods.map((period) => [period.pay_date, period]))
   const cells = buildMonthGrid(viewDate)
+  const todayISO = toISODate(new Date())
   const periodsInMonth = periods.filter((period) => {
     const [year, month] = period.pay_date.split('-').map(Number)
     return year === viewDate.getFullYear() && month - 1 === viewDate.getMonth()
@@ -71,6 +72,7 @@ export default function PayDatesCalendar({ onClose }) {
           if (!date) return <span key={`empty-${index}`} />
           const iso = toISODate(date)
           const period = periodByDate.get(iso)
+          const isToday = iso === todayISO
           return (
             <div
               key={iso}
@@ -78,11 +80,21 @@ export default function PayDatesCalendar({ onClose }) {
               className="aspect-square flex items-center justify-center"
             >
               {period ? (
-                <span className="w-7 h-7 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center text-sm font-bold">
+                <span
+                  className={`w-7 h-7 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center text-sm font-bold ${
+                    isToday ? 'ring-2 ring-blue-600' : ''
+                  }`}
+                >
                   ₡
                 </span>
               ) : (
-                <span className="text-sm text-gray-700">{date.getDate()}</span>
+                <span
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-sm ${
+                    isToday ? 'bg-blue-600 text-white font-semibold' : 'text-gray-700'
+                  }`}
+                >
+                  {date.getDate()}
+                </span>
               )}
             </div>
           )
