@@ -11,7 +11,9 @@ export function useIncomes() {
     setError('')
     const { data, error: fetchError } = await supabase
       .from('incomes')
-      .select('id, type, amount, note, created_at, user_id, account_id, accounts(name), profiles(nombre, email)')
+      .select(
+        'id, income_type_id, amount, note, created_at, user_id, account_id, accounts(name), income_types(name), profiles(nombre, email)',
+      )
       .order('created_at', { ascending: false })
 
     if (fetchError) {

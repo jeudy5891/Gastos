@@ -1,14 +1,17 @@
 import { useState } from 'react'
-import CategoriasTab from '../components/mantenimientos/CategoriasTab'
+import SimpleCatalogTab from '../components/mantenimientos/SimpleCatalogTab'
+import FechasPagoTab from '../components/mantenimientos/FechasPagoTab'
 import PerfilTab from '../components/mantenimientos/PerfilTab'
 
 const TABS = [
-  { value: 'categorias', label: 'Tipos de gasto' },
+  { value: 'gastos', label: 'Tipos de gasto' },
+  { value: 'ingresos', label: 'Tipos de ingreso' },
+  { value: 'quincenas', label: 'Fechas de pago' },
   { value: 'perfil', label: 'Perfil' },
 ]
 
 export default function Mantenimientos() {
-  const [tab, setTab] = useState('categorias')
+  const [tab, setTab] = useState('gastos')
 
   return (
     <div className="space-y-4">
@@ -31,7 +34,22 @@ export default function Mantenimientos() {
         ))}
       </div>
 
-      {tab === 'categorias' ? <CategoriasTab /> : <PerfilTab />}
+      {tab === 'gastos' && (
+        <SimpleCatalogTab
+          table="expense_categories"
+          placeholder="Nueva categoría"
+          emptyLabel="Todavía no hay categorías."
+        />
+      )}
+      {tab === 'ingresos' && (
+        <SimpleCatalogTab
+          table="income_types"
+          placeholder="Nuevo tipo de ingreso"
+          emptyLabel="Todavía no hay tipos de ingreso."
+        />
+      )}
+      {tab === 'quincenas' && <FechasPagoTab />}
+      {tab === 'perfil' && <PerfilTab />}
     </div>
   )
 }

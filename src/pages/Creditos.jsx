@@ -16,6 +16,7 @@ export default function Creditos() {
   const creditAccounts = accounts.filter((account) => account.type === 'credito')
   const debitAccounts = accounts.filter((account) => account.type === 'debito')
 
+  const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [accountId, setAccountId] = useState(null)
   const [debitAccountId, setDebitAccountId] = useState(null)
@@ -45,6 +46,7 @@ export default function Creditos() {
     setAmount(String(payment.amount))
     setError('')
     setSuccess(false)
+    setShowForm(true)
   }
 
   async function refreshAll() {
@@ -114,7 +116,25 @@ export default function Creditos() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold text-gray-800">Créditos</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-gray-800">Créditos</h1>
+        {creditAccounts.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              if (showForm) {
+                resetForm()
+                setShowForm(false)
+              } else {
+                setShowForm(true)
+              }
+            }}
+            className="rounded-lg bg-blue-600 text-white px-4 py-2 font-medium"
+          >
+            {showForm ? 'Cancelar' : '+ Pago'}
+          </button>
+        )}
+      </div>
 
       {loadingAccounts && <p className="text-gray-500">Cargando…</p>}
       {!loadingAccounts && creditAccounts.length === 0 && (
@@ -147,6 +167,8 @@ export default function Creditos() {
 
       {creditAccounts.length > 0 && (
         <>
+          {showForm && (
+          <>
           <h2 className="text-base font-semibold text-gray-800">
             {editingId ? 'Editar pago' : 'Registrar pago'}
           </h2>
@@ -251,6 +273,8 @@ export default function Creditos() {
                 </button>
               </div>
             </form>
+          )}
+          </>
           )}
 
           <div>

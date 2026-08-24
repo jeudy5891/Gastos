@@ -1,57 +1,70 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAccounts } from '../hooks/useAccounts'
-import { useMonthSummary } from '../hooks/useMonthSummary'
+import { useQuincenaSummary } from '../hooks/useQuincenaSummary'
 import { useProfile } from '../hooks/useProfile'
 import { formatCurrency } from '../lib/format'
+import PayDatesCalendar from '../components/PayDatesCalendar'
 
 export default function Dashboard() {
   const { accounts, loading: loadingAccounts } = useAccounts()
-  const { current, previous, loading: loadingSummary } = useMonthSummary()
+  const { current, previous, loading: loadingSummary } = useQuincenaSummary()
   const { profile } = useProfile()
+  const [showCalendar, setShowCalendar] = useState(false)
 
   const walmart = accounts.find((account) => account.name.trim().toLowerCase() === 'walmart')
   const credix = accounts.find((account) => account.name.trim().toLowerCase() === 'credix')
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-gray-600">
-          Bienvenido(a) {profile?.nombre || profile?.email}
-        </p>
-        {profile?.avatar_url ? (
-          <img
-            src={profile.avatar_url}
-            alt=""
-            className="w-10 h-10 rounded-full object-cover border border-gray-200"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-gray-200" />
-        )}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3">
+          {profile?.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="w-10 h-10 rounded-full object-cover border border-gray-200"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-200" />
+          )}
+          <p className="text-gray-600">Bienvenido(a) {profile?.nombre || profile?.email}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowCalendar(true)}
+          className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 whitespace-nowrap"
+        >
+          Fechas de pago
+        </button>
       </div>
 
-      <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
+      <div>
+        <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
+        <p className="text-xs text-gray-400">Quincena actual: {current.label}</p>
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white rounded-2xl shadow-sm p-4">
-          <p className="text-sm text-gray-500">Ingresos del mes</p>
+          <p className="text-sm text-gray-500">Ingresos de esta quincena</p>
           <p className="text-xl font-semibold text-green-600">
             {loadingSummary ? '…' : formatCurrency(current.incomes)}
           </p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-4">
-          <p className="text-sm text-gray-500">Gastos del mes</p>
+          <p className="text-sm text-gray-500">Gastos de esta quincena</p>
           <p className="text-xl font-semibold text-red-600">
             {loadingSummary ? '…' : formatCurrency(current.expenses)}
           </p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-4">
-          <p className="text-sm text-gray-500">Ingresos del mes anterior</p>
+          <p className="text-sm text-gray-500">Ingresos quincena anterior</p>
           <p className="text-lg font-semibold text-green-500">
             {loadingSummary ? '…' : formatCurrency(previous.incomes)}
           </p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-4">
-          <p className="text-sm text-gray-500">Gastos del mes anterior</p>
+          <p className="text-sm text-gray-500">Gastos quincena anterior</p>
           <p className="text-lg font-semibold text-red-500">
             {loadingSummary ? '…' : formatCurrency(previous.expenses)}
           </p>
@@ -101,6 +114,8 @@ export default function Dashboard() {
           ))}
         </ul>
       </div>
+
+      {showCalendar && <PayDatesCalendar onClose={() => setShowCalendar(false)} />}
     </div>
   )
 }

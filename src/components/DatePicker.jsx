@@ -1,37 +1,13 @@
 import { useState } from 'react'
 import Modal from './Modal'
-
-const DIAS = ['D', 'L', 'M', 'M', 'J', 'V', 'S']
-const MESES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
-]
-
-function toISODate(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function buildGrid(viewDate) {
-  const year = viewDate.getFullYear()
-  const month = viewDate.getMonth()
-  const startOffset = new Date(year, month, 1).getDay()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-
-  const cells = []
-  for (let i = 0; i < startOffset; i += 1) cells.push(null)
-  for (let day = 1; day <= daysInMonth; day += 1) cells.push(new Date(year, month, day))
-  return cells
-}
+import { MESES, DIAS, toISODate, buildMonthGrid } from '../lib/calendarGrid'
 
 export default function DatePicker({ value, onChange, onClose }) {
   const initial = value ? new Date(`${value}T00:00:00`) : new Date()
   const [viewDate, setViewDate] = useState(new Date(initial.getFullYear(), initial.getMonth(), 1))
 
   const todayISO = toISODate(new Date())
-  const cells = buildGrid(viewDate)
+  const cells = buildMonthGrid(viewDate)
 
   function changeMonth(delta) {
     setViewDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1))

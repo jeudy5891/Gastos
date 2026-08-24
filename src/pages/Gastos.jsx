@@ -15,6 +15,7 @@ export default function Gastos() {
   const { categories, loading: loadingCategories } = useCategories()
   const { expenses, loading: loadingExpenses, refresh } = useExpenses()
 
+  const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [accountId, setAccountId] = useState(null)
   const [categoryId, setCategoryId] = useState('')
@@ -43,6 +44,7 @@ export default function Gastos() {
     setNote(expense.note || '')
     setError('')
     setSuccess(false)
+    setShowForm(true)
   }
 
   async function handleSubmit(event) {
@@ -123,10 +125,25 @@ export default function Gastos() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold text-gray-800">
-        {editingId ? 'Editar gasto' : 'Nuevo gasto'}
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-gray-800">Gastos</h1>
+        <button
+          type="button"
+          onClick={() => {
+            if (showForm) {
+              resetForm()
+              setShowForm(false)
+            } else {
+              setShowForm(true)
+            }
+          }}
+          className="rounded-lg bg-blue-600 text-white px-4 py-2 font-medium"
+        >
+          {showForm ? 'Cancelar' : '+ Gasto'}
+        </button>
+      </div>
 
+      {showForm && (
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-4 space-y-4">
         <div className="space-y-1">
           <span className="text-sm text-gray-600">Cuenta a debitar</span>
@@ -219,6 +236,7 @@ export default function Gastos() {
           </button>
         </div>
       </form>
+      )}
 
       <div>
         <h2 className="text-base font-semibold text-gray-800 mb-2">Gastos recientes</h2>

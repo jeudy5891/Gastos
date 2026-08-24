@@ -2,22 +2,23 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useAccounts } from '../hooks/useAccounts'
+import { useIncomeTypes } from '../hooks/useIncomeTypes'
 import { useIncomes } from '../hooks/useIncomes'
 import { supabase } from '../lib/supabaseClient'
 import { formatCurrency } from '../lib/format'
 import Modal from '../components/Modal'
 import { IconPencil, IconTrash } from '../components/icons'
 
-const TIPOS = ['Salario', 'Liquidación', 'Salario escolar', 'Ventas o servicios']
-
 export default function Ingresos() {
   const { user } = useAuth()
   const { accounts: allAccounts, loading: loadingAccounts } = useAccounts()
   const accounts = allAccounts.filter((account) => account.type === 'debito')
+  const { incomeTypes, loading: loadingTypes } = useIncomeTypes()
   const { incomes, loading: loadingIncomes, refresh } = useIncomes()
 
+  const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
-  const [type, setType] = useState('')
+  const [incomeTypeId, setIncomeTypeId] = useState('')
   const [accountId, setAccountId] = useState(null)
   const [amount, setAmount] = useState('')
   const [note, setNote] = useState('')
@@ -30,7 +31,7 @@ export default function Ingresos() {
 
   function resetForm() {
     setEditingId(null)
-    setType('')
+    setIncomeTypeId('')
     setAccountId(null)
     setAmount('')
     setNote('')
@@ -38,12 +39,13 @@ export default function Ingresos() {
 
   function startEdit(income) {
     setEditingId(income.id)
-    setType(income.type)
+    setIncomeTypeId(income.income_type_id ? String(income.income_type_id) : '')
     setAccountId(income.account_id)
     setAmount(String(income.amount))
     setNote(income.note || '')
     setError('')
     setSuccess(false)
+    setShowForm(true)
   }
 
   async function handleSubmit(event) {
@@ -52,7 +54,7 @@ export default function Ingresos() {
     setSuccess(false)
 
     const amountNumber = Number(amount)
-    if (!type) {
+    if (!incomeTypeId) {
       setError('Elegí el tipo de ingreso')
       return
     }
@@ -68,7 +70,7 @@ export default function Ingresos() {
     setSaving(true)
     const payload = {
       account_id: accountId,
-      type,
+      income_type_id: incomeTypeId,
       amount: amountNumber,
       note: note.trim() || null,
     }
@@ -103,7 +105,7 @@ export default function Ingresos() {
     refresh()
   }
 
-  if (loadingAccounts) {
+  if (loadingAccounts || loadingTypes) {
     return <p className="text-gray-500">Cargando…</p>
   }
 
@@ -124,102 +126,118 @@ export default function Ingresos() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-lg font-semibold text-gray-800">
-        {editingId ? 'Editar ingreso' : 'Nuevo ingreso'}
-      </h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold text-gray-800">Ingresos</h1>
+        <button
+          type="button"
+          onClick={() => {
+            if (showForm) {
+              resetForm()
+              setShowForm(false)
+            } else {
+              setShowForm(true)
+            }
+          }}
+          className="rounded-lg bg-blue-600 text-white px-4 py-2 font-medium"
+        >
+          {showForm ? 'Cancelar' : '+ Ingreso'}
+        </button>
+      </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-4 space-y-4">
-        <div className="space-y-1">
-          <label className="text-sm text-gray-600" htmlFor="income-type">
-            Tipo de ingreso
-          </label>
-          <select
-            id="income-type"
-            value={type}
-            onChange={(event) => setType(event.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base bg-white"
-          >
-            <option value="">Seleccioná un tipo</option>
-            {TIPOS.map((tipo) => (
-              <option key={tipo} value={tipo}>
-                {tipo}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="space-y-1">
-          <span className="text-sm text-gray-600">Cuenta a acreditar</span>
-          <div className="grid grid-cols-2 gap-2">
-            {accounts.map((account) => (
-              <button
-                key={account.id}
-                type="button"
-                onClick={() => setAccountId(account.id)}
-                className={`rounded-lg py-3 px-2 font-medium border text-sm ${
-                  String(accountId) === String(account.id)
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white text-gray-700 border-gray-300'
-                }`}
-              >
-                {account.name}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-sm text-gray-600" htmlFor="amount">
-            Monto (₡)
-          </label>
-          <input
-            id="amount"
-            type="number"
-            inputMode="decimal"
-            min="0"
-            step="1"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
-            placeholder="0"
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-sm text-gray-600" htmlFor="note">
-            Nota (opcional)
-          </label>
-          <input
-            id="note"
-            type="text"
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base"
-          />
-        </div>
-
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {success && <p className="text-sm text-green-600">Ingreso guardado ✔</p>}
-
-        <div className="flex gap-2">
-          {editingId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="flex-1 rounded-lg border border-gray-300 py-3 font-medium text-gray-700"
+      {showForm && (
+        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm p-4 space-y-4">
+          <div className="space-y-1">
+            <label className="text-sm text-gray-600" htmlFor="income-type">
+              Tipo de ingreso
+            </label>
+            <select
+              id="income-type"
+              value={incomeTypeId}
+              onChange={(event) => setIncomeTypeId(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base bg-white"
             >
-              Cancelar
+              <option value="">Seleccioná un tipo</option>
+              {incomeTypes.map((tipo) => (
+                <option key={tipo.id} value={tipo.id}>
+                  {tipo.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-sm text-gray-600">Cuenta a acreditar</span>
+            <div className="grid grid-cols-2 gap-2">
+              {accounts.map((account) => (
+                <button
+                  key={account.id}
+                  type="button"
+                  onClick={() => setAccountId(account.id)}
+                  className={`rounded-lg py-3 px-2 font-medium border text-sm ${
+                    String(accountId) === String(account.id)
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-gray-700 border-gray-300'
+                  }`}
+                >
+                  {account.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm text-gray-600" htmlFor="amount">
+              Monto (₡)
+            </label>
+            <input
+              id="amount"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="1"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              placeholder="0"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-sm text-gray-600" htmlFor="note">
+              Nota (opcional)
+            </label>
+            <input
+              id="note"
+              type="text"
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base"
+            />
+          </div>
+
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          {success && <p className="text-sm text-green-600">Ingreso guardado ✔</p>}
+
+          <div className="flex gap-2">
+            {editingId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="flex-1 rounded-lg border border-gray-300 py-3 font-medium text-gray-700"
+              >
+                Cancelar
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 rounded-lg bg-blue-600 text-white py-3 font-medium disabled:opacity-50"
+            >
+              {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Guardar ingreso'}
             </button>
-          )}
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 rounded-lg bg-blue-600 text-white py-3 font-medium disabled:opacity-50"
-          >
-            {saving ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Guardar ingreso'}
-          </button>
-        </div>
-      </form>
+          </div>
+        </form>
+      )}
 
       <div>
         <h2 className="text-base font-semibold text-gray-800 mb-2">Ingresos recientes</h2>
@@ -232,7 +250,7 @@ export default function Ingresos() {
             <li key={income.id} className="bg-white rounded-2xl shadow-sm p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="font-medium text-gray-800">{income.type}</p>
+                  <p className="font-medium text-gray-800">{income.income_types?.name}</p>
                   <p className="text-sm text-gray-500">
                     {income.accounts?.name} · {income.profiles?.nombre || income.profiles?.email}
                   </p>

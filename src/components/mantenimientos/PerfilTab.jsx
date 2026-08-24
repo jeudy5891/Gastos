@@ -6,6 +6,7 @@ const ROLES = [
   { value: 'esposo', label: 'Esposo' },
   { value: 'esposa', label: 'Esposa' },
   { value: 'hijo', label: 'Hijo' },
+  { value: 'hija', label: 'Hija' },
 ]
 
 export default function PerfilTab() {
@@ -136,7 +137,7 @@ export default function PerfilTab() {
 
       <div className="space-y-1">
         <span className="text-sm text-gray-600">Parentesco</span>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {ROLES.map((option) => (
             <button
               key={option.value}

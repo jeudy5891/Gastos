@@ -3,8 +3,8 @@ import { supabase } from '../../lib/supabaseClient'
 import Modal from '../Modal'
 import { IconTrash } from '../icons'
 
-export default function CategoriasTab() {
-  const [categories, setCategories] = useState([])
+export default function SimpleCatalogTab({ table, placeholder, emptyLabel }) {
+  const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [name, setName] = useState('')
@@ -13,25 +13,27 @@ export default function CategoriasTab() {
   const [deleteError, setDeleteError] = useState('')
   const [deleting, setDeleting] = useState(false)
 
-  async function loadCategories() {
+  async function load() {
     setLoading(true)
     setError('')
     const { data, error: fetchError } = await supabase
-      .from('expense_categories')
+      .from(table)
       .select('id, name')
       .order('name', { ascending: true })
 
     if (fetchError) {
       setError(fetchError.message)
     } else {
-      setCategories(data)
+      setItems(data)
     }
     setLoading(false)
   }
 
   useEffect(() => {
-    loadCategories()
-  }, [])
+    load()
+    // Se vuelve a cargar si cambia la tabla que administra esta pestaña.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [table])
 
   async function handleAdd(event) {
     event.preventDefault()
@@ -39,34 +41,31 @@ export default function CategoriasTab() {
 
     setSaving(true)
     setError('')
-    const { error: insertError } = await supabase.from('expense_categories').insert({ name: name.trim() })
+    const { error: insertError } = await supabase.from(table).insert({ name: name.trim() })
     setSaving(false)
 
     if (insertError) {
-      setError('No se pudo agregar la categoría (¿ya existe?)')
+      setError('No se pudo agregar (¿ya existe?)')
       return
     }
 
     setName('')
-    loadCategories()
+    load()
   }
 
   async function confirmDelete() {
     setDeleting(true)
     setDeleteError('')
-    const { error: deleteErr } = await supabase
-      .from('expense_categories')
-      .delete()
-      .eq('id', pendingDelete.id)
+    const { error: deleteErr } = await supabase.from(table).delete().eq('id', pendingDelete.id)
     setDeleting(false)
 
     if (deleteErr) {
-      setDeleteError('No se pudo eliminar: hay gastos registrados con esta categoría.')
+      setDeleteError('No se pudo eliminar: está en uso en algún registro.')
       return
     }
 
     setPendingDelete(null)
-    loadCategories()
+    load()
   }
 
   return (
@@ -76,7 +75,7 @@ export default function CategoriasTab() {
           type="text"
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Nueva categoría"
+          placeholder={placeholder}
           className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-base"
         />
         <button
@@ -90,21 +89,22 @@ export default function CategoriasTab() {
 
       {error && <p className="text-sm text-red-600">{error}</p>}
       {loading && <p className="text-gray-500">Cargando…</p>}
+      {!loading && items.length === 0 && <p className="text-gray-500">{emptyLabel}</p>}
 
       <ul className="space-y-2">
-        {categories.map((category) => (
+        {items.map((item) => (
           <li
-            key={category.id}
+            key={item.id}
             className="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between"
           >
-            <span className="text-gray-800">{category.name}</span>
+            <span className="text-gray-800">{item.name}</span>
             <button
               type="button"
               onClick={() => {
                 setDeleteError('')
-                setPendingDelete(category)
+                setPendingDelete(item)
               }}
-              aria-label={`Eliminar ${category.name}`}
+              aria-label={`Eliminar ${item.name}`}
               className="text-gray-400 hover:text-red-600 p-1"
             >
               <IconTrash className="w-5 h-5" />
@@ -115,7 +115,7 @@ export default function CategoriasTab() {
 
       {pendingDelete && (
         <Modal onClose={() => setPendingDelete(null)}>
-          <p className="font-semibold text-gray-800 mb-1">Eliminar categoría</p>
+          <p className="font-semibold text-gray-800 mb-1">Eliminar</p>
           <p className="text-sm text-gray-600 mb-4">
             ¿Eliminar "{pendingDelete.name}"? Esta acción no se puede deshacer.
           </p>
