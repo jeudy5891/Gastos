@@ -5,9 +5,9 @@ import { IconWallet, IconCreditCard, IconArrowDown, IconArrowsLeftRight, IconRec
 const OPTIONS = [
   { label: 'Cuenta', to: '/cuentas', state: { openForm: true, presetType: 'debito' }, Icon: IconWallet },
   { label: 'Crédito', to: '/cuentas', state: { openForm: true, presetType: 'credito' }, Icon: IconCreditCard },
-  { label: 'Ingreso', to: '/ingresos', Icon: IconArrowDown },
+  { label: 'Ingreso', to: '/ingresos', state: { openForm: true }, Icon: IconArrowDown },
   { label: 'Transferencia', to: '/transferencias', Icon: IconArrowsLeftRight },
-  { label: 'Gasto', to: '/gastos', Icon: IconReceipt },
+  { label: 'Gasto', to: '/gastos', state: { openForm: true }, Icon: IconReceipt },
 ]
 
 export default function AddMenu({ onClose }) {

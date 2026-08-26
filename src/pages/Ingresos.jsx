@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useAccounts } from '../hooks/useAccounts'
 import { useIncomeTypes } from '../hooks/useIncomeTypes'
@@ -12,6 +12,8 @@ import { IconPencil, IconTrash } from '../components/icons'
 
 export default function Ingresos() {
   const { user } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const { accounts: allAccounts, loading: loadingAccounts } = useAccounts()
   const accounts = allAccounts.filter((account) => account.type === 'debito')
   const { incomeTypes, loading: loadingTypes } = useIncomeTypes()
@@ -20,6 +22,14 @@ export default function Ingresos() {
   const filteredIncomes = incomes.filter((income) => isWithinDateRange(income.created_at, dateFilter))
 
   const [showForm, setShowForm] = useState(false)
+
+  useEffect(() => {
+    if (location.state?.openForm) {
+      setShowForm(true)
+      // Limpiar el state para que no se reabra al volver con el botón atrás
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.state, location.pathname, navigate])
   const [editingId, setEditingId] = useState(null)
   const [incomeTypeId, setIncomeTypeId] = useState('')
   const [accountId, setAccountId] = useState(null)
