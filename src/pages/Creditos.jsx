@@ -4,9 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { useAccounts } from '../hooks/useAccounts'
 import { useCreditPayments } from '../hooks/useCreditPayments'
 import { supabase } from '../lib/supabaseClient'
-import { formatCurrency, formatDate, todayISODate } from '../lib/format'
+import { formatCurrency, formatDate, todayISODate, isDateOnlyWithinRange } from '../lib/format'
 import Modal from '../components/Modal'
 import DatePicker from '../components/DatePicker'
+import DateRangeFilterButton from '../components/DateRangeFilterButton'
 import { IconPencil, IconTrash } from '../components/icons'
 
 export default function Creditos() {
@@ -15,6 +16,8 @@ export default function Creditos() {
   const { payments, loading: loadingPayments, refresh: refreshPayments } = useCreditPayments()
   const creditAccounts = accounts.filter((account) => account.type === 'credito')
   const debitAccounts = accounts.filter((account) => account.type === 'debito')
+  const [dateFilter, setDateFilter] = useState(null)
+  const filteredPayments = payments.filter((payment) => isDateOnlyWithinRange(payment.payment_date, dateFilter))
 
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -278,13 +281,18 @@ export default function Creditos() {
           )}
 
           <div>
-            <h2 className="text-base font-semibold text-gray-800 mb-2">Pagos recientes</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-base font-semibold text-gray-800">Pagos recientes</h2>
+              <DateRangeFilterButton value={dateFilter} onChange={setDateFilter} />
+            </div>
             {loadingPayments && <p className="text-gray-500">Cargando…</p>}
-            {!loadingPayments && payments.length === 0 && (
-              <p className="text-gray-500">Todavía no hay pagos registrados.</p>
+            {!loadingPayments && filteredPayments.length === 0 && (
+              <p className="text-gray-500">
+                {dateFilter ? 'No hay pagos en ese rango de fechas.' : 'Todavía no hay pagos registrados.'}
+              </p>
             )}
             <ul className="space-y-2">
-              {payments.map((payment) => (
+              {filteredPayments.map((payment) => (
                 <li key={payment.id} className="bg-white rounded-2xl shadow-sm p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>

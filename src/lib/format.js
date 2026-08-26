@@ -25,3 +25,29 @@ export function todayISODate() {
   const day = String(now.getDate()).padStart(2, '0')
   return `${now.getFullYear()}-${month}-${day}`
 }
+
+const shortDateFormatter = new Intl.DateTimeFormat('es-CR', { day: 'numeric', month: 'short' })
+
+export function formatShortDate(isoDate) {
+  if (!isoDate) return ''
+  return shortDateFormatter.format(new Date(`${isoDate}T00:00:00`))
+}
+
+// Filtra registros con fecha y hora (created_at) por un rango de días,
+// usando el día calendario local (no UTC) como límite.
+export function isWithinDateRange(isoTimestamp, range) {
+  if (!range) return true
+  const [fy, fm, fd] = range.from.split('-').map(Number)
+  const [ty, tm, td] = range.to.split('-').map(Number)
+  const start = new Date(fy, fm - 1, fd, 0, 0, 0, 0)
+  const end = new Date(ty, tm - 1, td, 23, 59, 59, 999)
+  const value = new Date(isoTimestamp)
+  return value >= start && value <= end
+}
+
+// Filtra registros que ya son solo fecha (ej. payment_date), comparando
+// directo como texto ISO (YYYY-MM-DD ordena igual que cronológicamente).
+export function isDateOnlyWithinRange(isoDate, range) {
+  if (!range) return true
+  return isoDate >= range.from && isoDate <= range.to
+}

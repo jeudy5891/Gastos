@@ -5,8 +5,9 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useIncomeTypes } from '../hooks/useIncomeTypes'
 import { useIncomes } from '../hooks/useIncomes'
 import { supabase } from '../lib/supabaseClient'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, isWithinDateRange } from '../lib/format'
 import Modal from '../components/Modal'
+import DateRangeFilterButton from '../components/DateRangeFilterButton'
 import { IconPencil, IconTrash } from '../components/icons'
 
 export default function Ingresos() {
@@ -15,6 +16,8 @@ export default function Ingresos() {
   const accounts = allAccounts.filter((account) => account.type === 'debito')
   const { incomeTypes, loading: loadingTypes } = useIncomeTypes()
   const { incomes, loading: loadingIncomes, refresh } = useIncomes()
+  const [dateFilter, setDateFilter] = useState(null)
+  const filteredIncomes = incomes.filter((income) => isWithinDateRange(income.created_at, dateFilter))
 
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -240,13 +243,18 @@ export default function Ingresos() {
       )}
 
       <div>
-        <h2 className="text-base font-semibold text-gray-800 mb-2">Ingresos recientes</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base font-semibold text-gray-800">Ingresos recientes</h2>
+          <DateRangeFilterButton value={dateFilter} onChange={setDateFilter} />
+        </div>
         {loadingIncomes && <p className="text-gray-500">Cargando…</p>}
-        {!loadingIncomes && incomes.length === 0 && (
-          <p className="text-gray-500">Todavía no hay ingresos registrados.</p>
+        {!loadingIncomes && filteredIncomes.length === 0 && (
+          <p className="text-gray-500">
+            {dateFilter ? 'No hay ingresos en ese rango de fechas.' : 'Todavía no hay ingresos registrados.'}
+          </p>
         )}
         <ul className="space-y-2">
-          {incomes.map((income) => (
+          {filteredIncomes.map((income) => (
             <li key={income.id} className="bg-white rounded-2xl shadow-sm p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>

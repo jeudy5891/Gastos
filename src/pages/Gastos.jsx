@@ -5,8 +5,9 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useCategories } from '../hooks/useCategories'
 import { useExpenses } from '../hooks/useExpenses'
 import { supabase } from '../lib/supabaseClient'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, isWithinDateRange } from '../lib/format'
 import Modal from '../components/Modal'
+import DateRangeFilterButton from '../components/DateRangeFilterButton'
 import { IconPencil, IconTrash } from '../components/icons'
 
 export default function Gastos() {
@@ -14,6 +15,8 @@ export default function Gastos() {
   const { accounts, loading: loadingAccounts } = useAccounts()
   const { categories, loading: loadingCategories } = useCategories()
   const { expenses, loading: loadingExpenses, refresh } = useExpenses()
+  const [dateFilter, setDateFilter] = useState(null)
+  const filteredExpenses = expenses.filter((expense) => isWithinDateRange(expense.created_at, dateFilter))
 
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -239,13 +242,18 @@ export default function Gastos() {
       )}
 
       <div>
-        <h2 className="text-base font-semibold text-gray-800 mb-2">Gastos recientes</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base font-semibold text-gray-800">Gastos recientes</h2>
+          <DateRangeFilterButton value={dateFilter} onChange={setDateFilter} />
+        </div>
         {loadingExpenses && <p className="text-gray-500">Cargando…</p>}
-        {!loadingExpenses && expenses.length === 0 && (
-          <p className="text-gray-500">Todavía no hay gastos registrados.</p>
+        {!loadingExpenses && filteredExpenses.length === 0 && (
+          <p className="text-gray-500">
+            {dateFilter ? 'No hay gastos en ese rango de fechas.' : 'Todavía no hay gastos registrados.'}
+          </p>
         )}
         <ul className="space-y-2">
-          {expenses.map((expense) => (
+          {filteredExpenses.map((expense) => (
             <li key={expense.id} className="bg-white rounded-2xl shadow-sm p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
