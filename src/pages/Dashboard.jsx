@@ -15,6 +15,10 @@ export default function Dashboard() {
   const walmart = accounts.find((account) => account.name.trim().toLowerCase() === 'walmart')
   const credix = accounts.find((account) => account.name.trim().toLowerCase() === 'credix')
 
+  const saldoActual = accounts
+    .filter((account) => account.type === 'debito')
+    .reduce((sum, account) => sum + Number(account.balance), 0)
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
@@ -58,9 +62,9 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-4">
-          <p className="text-sm text-gray-500">Ingresos quincena anterior</p>
-          <p className="text-lg font-semibold text-green-500">
-            {loadingSummary ? '…' : formatCurrency(previous.incomes)}
+          <p className="text-sm text-gray-500">Saldo actual</p>
+          <p className="text-lg font-semibold text-blue-600">
+            {loadingAccounts ? '…' : formatCurrency(saldoActual)}
           </p>
         </div>
         <div className="bg-white rounded-2xl shadow-sm p-4">

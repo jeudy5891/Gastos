@@ -296,6 +296,15 @@ export default function Ingresos() {
             </li>
           ))}
         </ul>
+
+        {filteredIncomes.length > 0 && (
+          <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm p-4 mt-2">
+            <span className="text-sm font-medium text-gray-600">Total</span>
+            <span className="font-semibold text-gray-800">
+              {formatCurrency(filteredIncomes.reduce((sum, income) => sum + Number(income.amount), 0))}
+            </span>
+          </div>
+        )}
       </div>
 
       {pendingDelete && (
