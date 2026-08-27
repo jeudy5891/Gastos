@@ -26,6 +26,14 @@ export function todayISODate() {
   return `${now.getFullYear()}-${month}-${day}`
 }
 
+export function addDaysISO(isoDate, days) {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  const date = new Date(year, month - 1, day + days)
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${m}-${d}`
+}
+
 const shortDateFormatter = new Intl.DateTimeFormat('es-CR', { day: 'numeric', month: 'short' })
 
 export function formatShortDate(isoDate) {

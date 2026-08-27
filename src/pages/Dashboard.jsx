@@ -1,12 +1,16 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAccounts } from '../hooks/useAccounts'
 import { useQuincenaSummary } from '../hooks/useQuincenaSummary'
+import { usePendientes } from '../hooks/usePendientes'
 import { useProfile } from '../hooks/useProfile'
-import { formatCurrency } from '../lib/format'
+import { formatCurrency, formatDate, todayISODate, addDaysISO } from '../lib/format'
+import Modal from '../components/Modal'
 
 export default function Dashboard() {
   const { accounts, loading: loadingAccounts } = useAccounts()
   const { current, previous, loading: loadingSummary } = useQuincenaSummary()
+  const { pendientes, loading: loadingPendientes } = usePendientes()
   const { profile } = useProfile()
 
   const walmart = accounts.find((account) => account.name.trim().toLowerCase() === 'walmart')
@@ -15,6 +19,19 @@ export default function Dashboard() {
   const saldoActual = accounts
     .filter((account) => account.type === 'debito')
     .reduce((sum, account) => sum + Number(account.balance), 0)
+
+  const cutoff = addDaysISO(todayISODate(), 7)
+  const pendientesProximos = pendientes.filter((pendiente) => pendiente.due_date <= cutoff)
+
+  const [showAlert, setShowAlert] = useState(false)
+  useEffect(() => {
+    if (loadingPendientes || pendientesProximos.length === 0) return undefined
+
+    const timer = setTimeout(() => setShowAlert(true), 3000)
+    return () => clearTimeout(timer)
+    // Solo se dispara cuando termina de cargar, no en cada cambio de la lista filtrada.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingPendientes])
 
   return (
     <div className="space-y-4">
@@ -106,6 +123,32 @@ export default function Dashboard() {
           ))}
         </ul>
       </div>
+
+      {showAlert && (
+        <Modal onClose={() => setShowAlert(false)} panelStyle={{ backgroundColor: '#fcd5ce' }}>
+          <div className="flex justify-between items-center mb-3">
+            <span className="font-semibold text-gray-800 text-xl">Pendientes</span>
+            <button
+              type="button"
+              onClick={() => setShowAlert(false)}
+              aria-label="Cerrar"
+              className="text-3xl leading-none px-2 text-gray-600"
+            >
+              ×
+            </button>
+          </div>
+          <ul className="space-y-3">
+            {pendientesProximos.map((pendiente) => (
+              <li key={pendiente.id} className="flex items-center justify-between gap-3 text-base">
+                <span className="text-gray-800 font-medium">{pendiente.titulo}</span>
+                <span className="text-gray-700 whitespace-nowrap font-medium">
+                  {formatCurrency(pendiente.amount)} · {formatDate(pendiente.due_date)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Modal>
+      )}
     </div>
   )
 }
