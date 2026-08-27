@@ -6,7 +6,7 @@ const OPTIONS = [
   { label: 'Cuenta', to: '/cuentas', state: { openForm: true, presetType: 'debito' }, Icon: IconWallet },
   { label: 'Crédito', to: '/cuentas', state: { openForm: true, presetType: 'credito' }, Icon: IconCreditCard },
   { label: 'Ingreso', to: '/ingresos', state: { openForm: true }, Icon: IconArrowDown },
-  { label: 'Transferencia', to: '/transferencias', Icon: IconArrowsLeftRight },
+  { label: 'Transferencia', to: '/transferencias', state: { openForm: true }, Icon: IconArrowsLeftRight },
   { label: 'Gasto', to: '/gastos', state: { openForm: true }, Icon: IconReceipt },
 ]
 

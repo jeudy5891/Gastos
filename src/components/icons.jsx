@@ -100,6 +100,32 @@ export function IconPencil(props) {
   )
 }
 
+export function IconMenu(props) {
+  return (
+    <svg {...base(props)}>
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  )
+}
+
+export function IconCalendar(props) {
+  return (
+    <svg {...base(props)}>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M3 10h18M8 3v4M16 3v4" />
+    </svg>
+  )
+}
+
+export function IconChecklist(props) {
+  return (
+    <svg {...base(props)}>
+      <path d="M9 6h11M9 12h11M9 18h11" />
+      <path d="m4 6 1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2" />
+    </svg>
+  )
+}
+
 export function IconLogout(props) {
   return (
     <svg {...base(props)}>

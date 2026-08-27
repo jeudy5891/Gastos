@@ -3,10 +3,12 @@ import { Link, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import BottomNav from './BottomNav'
 import AddMenu from './AddMenu'
+import MoreMenu from './MoreMenu'
 import { IconLogout, IconWrench } from './icons'
 
 export default function AppShell() {
   const [showAddMenu, setShowAddMenu] = useState(false)
+  const [showMoreMenu, setShowMoreMenu] = useState(false)
   const { signOut } = useAuth()
 
   return (
@@ -36,8 +38,9 @@ export default function AppShell() {
         <Outlet />
       </main>
 
-      <BottomNav onAdd={() => setShowAddMenu(true)} />
+      <BottomNav onAdd={() => setShowAddMenu(true)} onMore={() => setShowMoreMenu(true)} />
       {showAddMenu && <AddMenu onClose={() => setShowAddMenu(false)} />}
+      {showMoreMenu && <MoreMenu onClose={() => setShowMoreMenu(false)} />}
     </div>
   )
 }

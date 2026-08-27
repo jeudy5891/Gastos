@@ -10,6 +10,8 @@ import Gastos from './pages/Gastos'
 import Creditos from './pages/Creditos'
 import Transferencias from './pages/Transferencias'
 import Mantenimientos from './pages/Mantenimientos'
+import Calendario from './pages/Calendario'
+import Pendientes from './pages/Pendientes'
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
             <Route path="/creditos" element={<Creditos />} />
             <Route path="/transferencias" element={<Transferencias />} />
             <Route path="/mantenimientos" element={<Mantenimientos />} />
+            <Route path="/calendario" element={<Calendario />} />
+            <Route path="/pendientes" element={<Pendientes />} />
           </Route>
         </Route>
       </Routes>

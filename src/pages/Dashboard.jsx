@@ -1,16 +1,13 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAccounts } from '../hooks/useAccounts'
 import { useQuincenaSummary } from '../hooks/useQuincenaSummary'
 import { useProfile } from '../hooks/useProfile'
 import { formatCurrency } from '../lib/format'
-import PayDatesCalendar from '../components/PayDatesCalendar'
 
 export default function Dashboard() {
   const { accounts, loading: loadingAccounts } = useAccounts()
   const { current, previous, loading: loadingSummary } = useQuincenaSummary()
   const { profile } = useProfile()
-  const [showCalendar, setShowCalendar] = useState(false)
 
   const walmart = accounts.find((account) => account.name.trim().toLowerCase() === 'walmart')
   const credix = accounts.find((account) => account.name.trim().toLowerCase() === 'credix')
@@ -21,26 +18,17 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          {profile?.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt=""
-              className="w-10 h-10 rounded-full object-cover border border-gray-200"
-            />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-gray-200" />
-          )}
-          <p className="text-gray-600">Bienvenido(a) {profile?.nombre || profile?.email}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowCalendar(true)}
-          className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 whitespace-nowrap"
-        >
-          Fechas de pago
-        </button>
+      <div className="flex items-center gap-3">
+        {profile?.avatar_url ? (
+          <img
+            src={profile.avatar_url}
+            alt=""
+            className="w-10 h-10 rounded-full object-cover border border-gray-200"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-gray-200" />
+        )}
+        <p className="text-gray-600">Bienvenido(a) {profile?.nombre || profile?.email}</p>
       </div>
 
       <div>
@@ -118,8 +106,6 @@ export default function Dashboard() {
           ))}
         </ul>
       </div>
-
-      {showCalendar && <PayDatesCalendar onClose={() => setShowCalendar(false)} />}
     </div>
   )
 }
