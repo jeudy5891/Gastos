@@ -5,9 +5,10 @@ import { useAccounts } from '../hooks/useAccounts'
 import { useCategories } from '../hooks/useCategories'
 import { useExpenses } from '../hooks/useExpenses'
 import { supabase } from '../lib/supabaseClient'
-import { formatCurrency, isWithinDateRange } from '../lib/format'
+import { formatCurrency } from '../lib/format'
 import Modal from '../components/Modal'
 import DateRangeFilterButton from '../components/DateRangeFilterButton'
+import { matchesFilter } from '../lib/filters'
 import { IconPencil, IconTrash } from '../components/icons'
 
 export default function Gastos() {
@@ -17,8 +18,26 @@ export default function Gastos() {
   const { accounts, loading: loadingAccounts } = useAccounts()
   const { categories, loading: loadingCategories } = useCategories()
   const { expenses, loading: loadingExpenses, refresh } = useExpenses()
-  const [dateFilter, setDateFilter] = useState(null)
-  const filteredExpenses = expenses.filter((expense) => isWithinDateRange(expense.created_at, dateFilter))
+  const [filter, setFilter] = useState(null)
+  // Orden de los filtros en cascada: fecha → cuenta → tipo
+  const filterConfig = {
+    getDate: (expense) => expense.created_at,
+    fields: [
+      {
+        key: 'cuenta',
+        label: 'Cuenta a debitar',
+        options: accounts.map((account) => ({ value: String(account.id), label: account.name })),
+        getValue: (expense) => expense.account_id,
+      },
+      {
+        key: 'tipo',
+        label: 'Tipo',
+        options: categories.map((category) => ({ value: String(category.id), label: category.name })),
+        getValue: (expense) => expense.category_id,
+      },
+    ],
+  }
+  const filteredExpenses = expenses.filter((expense) => matchesFilter(expense, filter, filterConfig))
 
   const [showForm, setShowForm] = useState(false)
 
@@ -254,12 +273,18 @@ export default function Gastos() {
       <div>
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-base font-semibold text-gray-800">Gastos recientes</h2>
-          <DateRangeFilterButton value={dateFilter} onChange={setDateFilter} />
+          <DateRangeFilterButton
+            label="Filtrar"
+            value={filter}
+            onChange={setFilter}
+            items={expenses}
+            {...filterConfig}
+          />
         </div>
         {loadingExpenses && <p className="text-gray-500">Cargando…</p>}
         {!loadingExpenses && filteredExpenses.length === 0 && (
           <p className="text-gray-500">
-            {dateFilter ? 'No hay gastos en ese rango de fechas.' : 'Todavía no hay gastos registrados.'}
+            {filter ? 'No hay gastos con esos filtros.' : 'Todavía no hay gastos registrados.'}
           </p>
         )}
         <ul className="space-y-2">
